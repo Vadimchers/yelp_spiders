@@ -7,7 +7,8 @@ class YelpSpider(scrapy.Spider):
     name = 'yelp_spider'
     custom_settings = {'FEED_URI': "yelps_%(time)s.json",
                        'FEED_FORMAT': 'json',
-                       'ROBOTSTXT_OBEY': False}
+                       'ROBOTSTXT_OBEY': False,
+                       'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'}
 
     def __init__(self, url):
         self.allowed_domains = ['yelp.com']
