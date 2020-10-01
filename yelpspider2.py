@@ -15,11 +15,11 @@ class YelpSpider(scrapy.Spider):
         self.start_urls = [url]
 
     def parse(self, responce):
-        biz_title = responce.css('h1::text').extract_first()
-        biz_img = responce.xpath('//meta[@property="og:image"]/@content').extract_first()
-        biz_phone = responce.xpath('//p[starts-with(text(), "Phone number")]/following-sibling::p[1]/text()').extract_first()
-        biz_id = responce.xpath('//meta[@name="yelp-biz-id"]/@content').extract_first()
-        address_lines = responce.xpath('//address[contains(@class, "lemon--address")]/p/span/text()').extract()
+        biz_title = responce.css('h1::text').get()
+        biz_img = responce.xpath('//meta[@property="og:image"]/@content').get()
+        biz_phone = responce.xpath('//p[starts-with(text(), "Phone number")]/following-sibling::p[1]/text()').get()
+        biz_id = responce.xpath('//meta[@name="yelp-biz-id"]/@content').get()
+        address_lines = responce.xpath('//address[contains(@class, "lemon--address")]/p/span/text()').getall()
         if len(address_lines) < 3:
             for x in range(3 - len(address_lines)):
                 address_lines = [''] + address_lines
@@ -41,6 +41,7 @@ class YelpSpider(scrapy.Spider):
             state_zip = address_lines[1].split(',')
             address_city = state_zip.pop(0)
             address_place = ', '.join(address_lines[0:2])
+            print(state_zip)
             state_zip = state_zip[0].strip().split(' ')
             address_state = state_zip[0]
             address_zip = state_zip[1] if len(state_zip) == 2 else ' '.join(state_zip[1:])
@@ -51,17 +52,17 @@ class YelpSpider(scrapy.Spider):
             'street': address_place,
             'zipcode': address_zip
         }
-        rating = responce.xpath('//div[contains(@class, "i-stars--large")]/@aria-label').extract_first()
+        rating = responce.xpath('//div[contains(@class, "i-stars--large")]/@aria-label').get()
         biz_rating = rating.split(' ')[0]
-        rating_num = responce.xpath('//p[contains(text(), "reviews")]/text()').extract_first()
+        rating_num = responce.xpath('//p[contains(text(), "reviews")]/text()').get()
         biz_rating_num = rating_num.split(' ')[0]
-        biz_categories = responce.xpath('//a[starts-with(@href, "/c/")]/text()').extract()
+        biz_categories = responce.xpath('//a[starts-with(@href, "/c/")]/text()').getall()
         biz_work_hours = list()
-        work_days = responce.xpath('//table[contains(@class, "hours-table")]/tbody/tr/th/p/text()').extract()
-        work_hours = responce.xpath('//table[contains(@class, "hours-table")]/tbody/tr/td/ul/li/p/text()').extract()
+        work_days = responce.xpath('//table[contains(@class, "hours-table")]/tbody/tr/th/p/text()').getall()
+        work_hours = responce.xpath('//table[contains(@class, "hours-table")]/tbody/tr/td/ul/li/p/text()').getall()
         for i in zip(work_days, work_hours):
             biz_work_hours.append({'day': i[0], 'hours': i[1]})
-        json_script = responce.xpath('//script[contains(@data-hypernova-key,"__yelp_main__BizDetailsApp__dynamic")]/text()').extract_first()
+        json_script = responce.xpath('//script[contains(@data-hypernova-key,"__yelp_main__BizDetailsApp__dynamic")]/text()').get()
         json_data = json.loads(json_script.replace('<!--', '').replace('-->', ''))
         biz_about = list()
         if json_data['bizDetailsPageProps']['fromTheBusinessProps']:
@@ -100,5 +101,3 @@ class YelpSpider(scrapy.Spider):
         }
 
         yield scraped_data
-
-
