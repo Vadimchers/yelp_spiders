@@ -17,9 +17,9 @@ class YelpSpider(scrapy.Spider):
     def parse(self, responce):
         print('Processing:', responce.url)
         # название
-        biz_title = responce.css('h1::text').extract_first()
+        biz_title = responce.css('h1::text').get()
         # JSON объект со всеми данными на странице
-        json_script = responce.xpath('//script[contains(@data-hypernova-key,"__yelp_main__BizDetailsApp__dynamic")]/text()').extract_first()
+        json_script = responce.xpath('//script[contains(@data-hypernova-key,"__yelp_main__BizDetailsApp__dynamic")]/text()').get()
         json_data = json.loads(json_script.replace('<!--', '').replace('-->', ''))
         # ссылку на главное изображение
         biz_img = None
@@ -28,7 +28,7 @@ class YelpSpider(scrapy.Spider):
         # телефон (если есть)
         biz_phone = json_data['bizDetailsPageProps']['bizContactInfoProps']['phoneNumber']
         # внешний id бизнеса (id в системе yelp)
-        biz_id = json_data['bizDetailsPageProps']['claimStatusGQLProps']['businessId']
+        biz_id = json_data['bizDetailsPageProps']['businessId']
         address_lines = json_data['bizDetailsPageProps']['mapBoxProps']['addressProps']['addressLines']
         if len(address_lines) < 3:
             for x in range(3 - len(address_lines)):
@@ -113,5 +113,3 @@ class YelpSpider(scrapy.Spider):
         }
 
         yield scraped_data
-
-
